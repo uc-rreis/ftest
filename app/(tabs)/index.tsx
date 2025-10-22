@@ -5,11 +5,42 @@ import { ThemedView } from "@/components/themed-view";
 import { Usercentrics } from "@usercentrics/react-native-sdk";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
+import { useEffect, useState } from "react";
 import { Platform, StyleSheet } from "react-native";
 
 export default function HomeScreen() {
-  Usercentrics.configure({ settingsId: "hKTmJ4UVL" });
-  //const userResponse = await Usercentrics.showFirstLayer();
+  const [sdkStatus, setSdkStatus] = useState("Loading...");
+  const [userResponse, setUserResponse] = useState(null);
+
+  useEffect(() => {
+    const initializeUsercentrics = async () => {
+      try {
+        console.log("Initializing Usercentrics...");
+        Usercentrics.configure({ settingsId: "hKTmJ4UVL" });
+        setSdkStatus("SDK configured");
+        
+        // Check if SDK is ready
+        const isReady = await Usercentrics.status();
+        console.log("SDK ready status:", isReady);
+        setSdkStatus(`SDK ready: ${isReady}`);
+        
+        if (isReady) {
+          console.log("Showing first layer...");
+          const response = await Usercentrics.showFirstLayer();
+          console.log("User response:", response);
+          setUserResponse(response);
+          setSdkStatus("First layer shown");
+        } else {
+          setSdkStatus("SDK not ready");
+        }
+      } catch (error) {
+        console.error("Error initializing Usercentrics:", error);
+        setSdkStatus(`Error: ${error.message}`);
+      }
+    };
+
+    initializeUsercentrics();
+  }, []);
 
   return (
     <ParallaxScrollView
